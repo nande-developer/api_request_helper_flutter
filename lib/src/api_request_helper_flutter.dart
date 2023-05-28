@@ -16,22 +16,23 @@ class ApiRequestHelperFlutter {
   /// Throws a [Exception] if response status code is not 200
   Future<dynamic> get({
     required Uri uri,
-    String? userToken,
-    Map<String, String>? body,
+    String userToken = '',
+    Map<String, String> body = const {},
   }) async {
     final headers = {'Content-Type': 'application/json'};
 
-    if (userToken != null) {
+    if (userToken.isNotEmpty) {
       headers.addAll({'Authorization': 'Bearer $userToken'});
     }
 
+    log('ApiRequestHelper -- method: GET');
     log('ApiRequestHelper -- uri: $uri');
     log('ApiRequestHelper -- request headers: $headers');
 
     final request = http.Request('GET', uri);
     request.headers.addAll(headers);
 
-    if (body != null) {
+    if (body.isNotEmpty) {
       request.bodyFields = body;
       log('ApiRequestHelper -- request body: $body');
     }
@@ -44,24 +45,28 @@ class ApiRequestHelperFlutter {
   /// Throws a [Exception] if response status code is not 200
   Future<dynamic> post({
     required Uri uri,
-    required Map<String, String>? body,
-    Map<String, String>? additionalHeaders,
-    Map<String, String>? filePaths,
-    String? token,
+    required Map<String, String> body,
+    Map<String, String> additionalHeaders = const {},
+    Map<String, String> fileData = const {},
+    String token = '',
   }) async {
     final headers = {'Content-Type': 'application/json'}
-      ..addAll(additionalHeaders ?? {});
+      ..addAll(additionalHeaders);
 
-    if (token != null) {
+    if (token.isNotEmpty) {
       headers.addAll({'Authorization': 'Bearer $token'});
     }
 
+    log('ApiRequestHelper -- method: POST');
+    log('ApiRequestHelper -- uri: $uri');
+    log('ApiRequestHelper -- request headers: $headers');
+    log('ApiRequestHelper -- request body: $body');
     final request = http.MultipartRequest('POST', uri);
     request.headers.addAll(headers);
-    request.fields.addAll(body ?? {});
+    request.fields.addAll(body);
 
-    if (filePaths != null && filePaths.isNotEmpty) {
-      for (final filePathEntry in filePaths.entries) {
+    if (fileData.isNotEmpty) {
+      for (final filePathEntry in fileData.entries) {
         final field = filePathEntry.key;
         final fieldPath = filePathEntry.value;
 
@@ -69,6 +74,42 @@ class ApiRequestHelperFlutter {
       }
     }
 
+    return _sendRequest(request);
+  }
+
+  /// Calls PATCH api which will emit [Future] dynamic
+  ///
+  /// Throws a [Exception] if response status code is not 200
+  Future<dynamic> patch({
+    required Uri uri,
+    required Map<String, String> body,
+    Map<String, String> filePath = const {},
+    String token = '',
+  }) async {
+    final request = http.MultipartRequest('PATCH', uri);
+    final headers = {'Content-Type': 'application/json'};
+
+    if (token.isNotEmpty) {
+      request.headers.addAll({'Authorization': 'Bearer $token'});
+    }
+
+    log('ApiRequestHelper -- method: PATCH');
+    log('ApiRequestHelper -- uri: $uri');
+    log('ApiRequestHelper -- request headers: $headers');
+    log('ApiRequestHelper -- request body: $body');
+
+    if (filePath.isNotEmpty && filePath.length == 1) {
+      body.remove(filePath.keys.first);
+
+      final file = await http.MultipartFile.fromPath(
+        filePath.keys.first,
+        filePath.values.first,
+      );
+
+      request.files.add(file);
+    }
+
+    request.fields.addAll(body);
     return _sendRequest(request);
   }
 
