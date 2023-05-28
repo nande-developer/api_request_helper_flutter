@@ -39,6 +39,39 @@ class ApiRequestHelperFlutter {
     return _sendRequest(request);
   }
 
+  /// Calls POST api which will emit [Future] dynamic
+  ///
+  /// Throws a [Exception] if response status code is not 200
+  Future<dynamic> post({
+    required Uri uri,
+    required Map<String, String>? body,
+    Map<String, String>? additionalHeaders,
+    Map<String, String>? filePaths,
+    String? token,
+  }) async {
+    final headers = {'Content-Type': 'application/json'}
+      ..addAll(additionalHeaders ?? {});
+
+    if (token != null) {
+      headers.addAll({'Authorization': 'Bearer $token'});
+    }
+
+    final request = http.MultipartRequest('POST', uri);
+    request.headers.addAll(headers);
+    request.fields.addAll(body ?? {});
+
+    if (filePaths != null && filePaths.isNotEmpty) {
+      for (final filePathEntry in filePaths.entries) {
+        final field = filePathEntry.key;
+        final fieldPath = filePathEntry.value;
+
+        request.files.add(await http.MultipartFile.fromPath(field, fieldPath));
+      }
+    }
+
+    return _sendRequest(request);
+  }
+
   Future<dynamic> _sendRequest(http.BaseRequest request) async {
     final response = await request.send().timeout(
           const Duration(minutes: 1),
