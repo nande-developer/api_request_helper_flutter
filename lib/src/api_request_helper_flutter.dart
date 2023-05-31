@@ -9,7 +9,10 @@ import 'package:http/http.dart' as http;
 /// {@endtemplate}
 class ApiRequestHelperFlutter {
   /// {@macro api_request_helper_flutter}
-  const ApiRequestHelperFlutter();
+  ApiRequestHelperFlutter({http.Client? client})
+      : _client = client ?? http.Client();
+
+  final http.Client _client;
 
   /// Calls GET api which will emit [Future] Map<String, dynamic>
   ///
@@ -17,7 +20,6 @@ class ApiRequestHelperFlutter {
   Future<dynamic> get({
     required Uri uri,
     String userToken = '',
-    Map<String, String> body = const {},
   }) async {
     final headers = {'Content-Type': 'application/json'};
 
@@ -28,15 +30,8 @@ class ApiRequestHelperFlutter {
     log('ApiRequestHelper -- method: GET');
     log('ApiRequestHelper -- uri: $uri');
     log('ApiRequestHelper -- request headers: $headers');
-
     final request = http.Request('GET', uri);
     request.headers.addAll(headers);
-
-    if (body.isNotEmpty) {
-      request.bodyFields = body;
-      log('ApiRequestHelper -- request body: $body');
-    }
-
     return _sendRequest(request);
   }
 
@@ -114,10 +109,9 @@ class ApiRequestHelperFlutter {
   }
 
   Future<dynamic> _sendRequest(http.BaseRequest request) async {
-    final response = await request.send().timeout(
-          const Duration(minutes: 1),
-          onTimeout: () => throw TimeoutException(''),
-        );
+    print('request a $request ${request.headers}');
+    final response =
+        await _client.send(request).timeout(const Duration(minutes: 1));
 
     return _returnResponse(response);
   }
@@ -127,14 +121,14 @@ class ApiRequestHelperFlutter {
     final statusCode = response.statusCode;
     final mappedResponse = jsonDecode(stringBody) as Map<String, dynamic>;
     log('ApiRequestHelper -- response status code: $statusCode');
-    log('ApiRequestHelper -- body status code: $statusCode');
+    print('ApiRequestHelper -- response status code: $statusCode');
     log('ApiRequestHelper -- body: $mappedResponse');
 
-    switch (mappedResponse['code']) {
+    switch (statusCode) {
       case 200:
-        return stringBody;
+        return mappedResponse;
       default:
-        return Exception(mappedResponse['message']);
+        return Exception(response.reasonPhrase);
     }
   }
 }
