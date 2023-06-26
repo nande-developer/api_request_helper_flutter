@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:api_request_helper_flutter/api_request_helper_flutter.dart';
 import 'package:http/http.dart' as http;
 
 /// {@template api_request_helper_flutter}
@@ -109,7 +110,6 @@ class ApiRequestHelperFlutter {
   }
 
   Future<dynamic> _sendRequest(http.BaseRequest request) async {
-    print('request a $request ${request.headers}');
     final response =
         await _client.send(request).timeout(const Duration(minutes: 1));
 
@@ -121,14 +121,35 @@ class ApiRequestHelperFlutter {
     final statusCode = response.statusCode;
     final mappedResponse = jsonDecode(stringBody) as Map<String, dynamic>;
     log('ApiRequestHelper -- response status code: $statusCode');
-    print('ApiRequestHelper -- response status code: $statusCode');
     log('ApiRequestHelper -- body: $mappedResponse');
 
     switch (statusCode) {
       case 200:
         return mappedResponse;
+      case 400:
+        throw ServiceException(
+          code: 'bad-response',
+          message: response.reasonPhrase,
+        );
+      case 403:
+        throw ServiceException(
+          code: 'forbidden',
+          message: response.reasonPhrase,
+        );
+      case 422:
+        throw ServiceException(
+          code: 'format',
+          message: response.reasonPhrase,
+        );
       default:
-        return Exception(response.reasonPhrase);
+        if (statusCode >= 500 && statusCode < 600) {
+          throw ServiceException(
+            code: 'server',
+            message: response.reasonPhrase,
+          );
+        }
+
+        throw ServiceException(code: 'unknown', message: response.reasonPhrase);
     }
   }
 }
