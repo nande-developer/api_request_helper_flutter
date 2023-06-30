@@ -2,15 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:equatable/equatable.dart';
 import 'package:http/http.dart' as http;
 
 /// {@template service_exception}
 /// Custom exception model that provides exceptions in a format to users.
 /// {@endtemplate}
-class CustomException extends Equatable implements Exception {
+class ServiceException implements Exception {
   /// {@macro service_exception}
-  const CustomException({this.code, this.message, this.stackTrace});
+  const ServiceException({this.code, this.message, this.stackTrace});
 
   /// The optional code to accommodate the message.
   ///
@@ -25,9 +24,6 @@ class CustomException extends Equatable implements Exception {
   /// A [StackTrace] is intended to convey information to the user about the
   /// call sequence that triggered an exception.
   final StackTrace? stackTrace;
-
-  @override
-  List<Object?> get props => [code, message, stackTrace];
 }
 
 /// {@template api_request_helper_flutter}
@@ -152,29 +148,29 @@ class ApiRequestHelperFlutter {
       case 200:
         return mappedResponse;
       case 400:
-        throw CustomException(
+        throw ServiceException(
           code: 'bad-response',
           message: response.reasonPhrase,
         );
       case 403:
-        throw CustomException(
+        throw ServiceException(
           code: 'forbidden',
           message: response.reasonPhrase,
         );
       case 422:
-        throw CustomException(
+        throw ServiceException(
           code: 'format',
           message: response.reasonPhrase,
         );
       default:
         if (statusCode >= 500 && statusCode < 600) {
-          throw CustomException(
+          throw ServiceException(
             code: 'server',
             message: response.reasonPhrase,
           );
         }
 
-        throw CustomException(code: 'unknown', message: response.reasonPhrase);
+        throw ServiceException(code: 'unknown', message: response.reasonPhrase);
     }
   }
 }
