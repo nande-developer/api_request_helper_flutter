@@ -8,9 +8,9 @@ import 'package:http/http.dart' as http;
 /// {@template service_exception}
 /// Custom exception model that provides exceptions in a format to users.
 /// {@endtemplate}
-class ServiceException extends Equatable implements Exception {
+class CustomException extends Equatable implements Exception {
   /// {@macro service_exception}
-  const ServiceException({this.code, this.message, this.stackTrace});
+  const CustomException({this.code, this.message, this.stackTrace});
 
   /// The optional code to accommodate the message.
   ///
@@ -152,29 +152,29 @@ class ApiRequestHelperFlutter {
       case 200:
         return mappedResponse;
       case 400:
-        throw ServiceException(
+        throw CustomException(
           code: 'bad-response',
           message: response.reasonPhrase,
         );
       case 403:
-        throw ServiceException(
+        throw CustomException(
           code: 'forbidden',
           message: response.reasonPhrase,
         );
       case 422:
-        throw ServiceException(
+        throw CustomException(
           code: 'format',
           message: response.reasonPhrase,
         );
       default:
         if (statusCode >= 500 && statusCode < 600) {
-          throw ServiceException(
+          throw CustomException(
             code: 'server',
             message: response.reasonPhrase,
           );
         }
 
-        throw ServiceException(code: 'unknown', message: response.reasonPhrase);
+        throw CustomException(code: 'unknown', message: response.reasonPhrase);
     }
   }
 }
