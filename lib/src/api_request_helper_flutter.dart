@@ -2,8 +2,33 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:api_request_helper_flutter/api_request_helper_flutter.dart';
+import 'package:equatable/equatable.dart';
 import 'package:http/http.dart' as http;
+
+/// {@template service_exception}
+/// Custom exception model that provides exceptions in a format to users.
+/// {@endtemplate}
+class ServiceException extends Equatable implements Exception {
+  /// {@macro service_exception}
+  const ServiceException({this.code, this.message, this.stackTrace});
+
+  /// The optional code to accommodate the message.
+  ///
+  /// Allows users to identify the exception from a short code-name, for example
+  /// "wrong-password" is used when a user insert the wrong password
+  final String? code;
+
+  /// The long form message of the exception.
+  final String? message;
+
+  /// An interface implemented by all stack trace objects.
+  /// A [StackTrace] is intended to convey information to the user about the
+  /// call sequence that triggered an exception.
+  final StackTrace? stackTrace;
+
+  @override
+  List<Object?> get props => [code, message, stackTrace];
+}
 
 /// {@template api_request_helper_flutter}
 /// Flutter package for handling http calls such as GET, POST, PUT, DELETE.
