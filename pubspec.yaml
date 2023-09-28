@@ -1,6 +1,6 @@
 name: api_request_helper_flutter
 description: Flutter package for handling http calls such as GET, POST, PUT, DELETE.
-version: 0.2.1+3
+version: 0.3.0+4
 publish_to: none
 
 environment:
