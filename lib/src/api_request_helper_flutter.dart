@@ -120,16 +120,17 @@ class ApiRequestHelperFlutter {
     final stringBody = await response.stream.bytesToString();
     final statusCode = response.statusCode;
     final mappedResponse = jsonDecode(stringBody) as Map<String, dynamic>;
+    final baseResponse = BaseResponse.fromJson(mappedResponse);
     log('ApiRequestHelper -- response status code: $statusCode');
     log('ApiRequestHelper -- body: $mappedResponse');
 
-    if (statusCode == 200 && mappedResponse['status'] == 200) {
-      return mappedResponse['data'];
+    if (statusCode == 200 && baseResponse.status == 200) {
+      return baseResponse.data;
     }
 
     throw ServiceException(
       code: response.reasonPhrase?.replaceAll(' ', '-').toLowerCase(),
-      message: mappedResponse['message'] as String?,
+      message: baseResponse.message,
     );
   }
 }
