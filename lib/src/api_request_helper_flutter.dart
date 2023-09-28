@@ -25,7 +25,7 @@ class ApiRequestHelperFlutter {
     final headers = {'Content-Type': 'application/json'};
 
     if (userToken.isNotEmpty) {
-      headers.addAll({'Authorization': 'Bearer $userToken'});
+      headers.addAll({'Authorization': userToken});
     }
 
     log('ApiRequestHelper -- method: GET');
@@ -50,7 +50,7 @@ class ApiRequestHelperFlutter {
       ..addAll(additionalHeaders);
 
     if (token.isNotEmpty) {
-      headers.addAll({'Authorization': 'Bearer $token'});
+      headers.addAll({'Authorization': token});
     }
 
     log('ApiRequestHelper -- method: POST');
@@ -86,7 +86,7 @@ class ApiRequestHelperFlutter {
     final headers = {'Content-Type': 'application/json'};
 
     if (token.isNotEmpty) {
-      request.headers.addAll({'Authorization': 'Bearer $token'});
+      request.headers.addAll({'Authorization': token});
     }
 
     log('ApiRequestHelper -- method: PATCH');
@@ -123,33 +123,13 @@ class ApiRequestHelperFlutter {
     log('ApiRequestHelper -- response status code: $statusCode');
     log('ApiRequestHelper -- body: $mappedResponse');
 
-    switch (statusCode) {
-      case 200:
-        return mappedResponse;
-      case 400:
-        throw ServiceException(
-          code: 'bad-response',
-          message: response.reasonPhrase,
-        );
-      case 403:
-        throw ServiceException(
-          code: 'forbidden',
-          message: response.reasonPhrase,
-        );
-      case 422:
-        throw ServiceException(
-          code: 'format',
-          message: response.reasonPhrase,
-        );
-      default:
-        if (statusCode >= 500 && statusCode < 600) {
-          throw ServiceException(
-            code: 'server',
-            message: response.reasonPhrase,
-          );
-        }
-
-        throw ServiceException(code: 'unknown', message: response.reasonPhrase);
+    if (statusCode == 200 && mappedResponse['status'] == 200) {
+      return mappedResponse['data'];
     }
+
+    throw ServiceException(
+      code: response.reasonPhrase?.replaceAll(' ', '-').toLowerCase(),
+      message: mappedResponse['message'] as String?,
+    );
   }
 }

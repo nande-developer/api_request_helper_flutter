@@ -49,7 +49,10 @@ void main() {
 
         final byteStream = http.ByteStream.fromBytes(expextedResponseByte);
 
-        final request = http.Request('GET', uri, );
+        final request = http.Request(
+          'GET',
+          uri,
+        );
         request.headers.addAll(headers);
         print('request e $request ${request.headers}');
 
@@ -80,6 +83,12 @@ void main() {
         'throws Exception if e http call failed.',
         () => runGetMethodTest(isSuccess: false),
       );
+    });
+  });
+
+  group('ServiceException', () {
+    test('can be instantiated.', () {
+      expect(const ServiceException(), isException);
     });
   });
 }
