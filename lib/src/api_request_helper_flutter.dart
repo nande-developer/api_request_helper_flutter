@@ -134,3 +134,21 @@ class ApiRequestHelperFlutter {
     );
   }
 }
+
+/// Convinient converter for converting Map<String, dynamic> to json body format
+extension ToJson on Map<String, dynamic> {
+  /// Convinient function for converting Map<String, dynamic> to json body 
+  /// format
+  Map<String, String> get toJson {
+    final json = Map<String, String>.from({});
+    final length = this.length;
+
+    for (var i = 0; i < length; i++) {
+      final key = keys.elementAt(i);
+      final value = values.elementAt(i);
+      json.addAll({key: '$value'});
+    }
+
+    return json;
+  }
+}
