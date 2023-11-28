@@ -109,6 +109,42 @@ class ApiRequestHelperFlutter {
     return _sendRequest(request);
   }
 
+  /// Calls PUT api which will emit [Future] dynamic
+  ///
+  /// Throws a [Exception] if response status code is not 200
+  Future<dynamic> put({
+    required Uri uri,
+    required Map<String, String> body,
+    Map<String, String> filePath = const {},
+    String token = '',
+  }) async {
+    final request = http.MultipartRequest('PUT', uri);
+    final headers = {'Content-Type': 'application/json'};
+
+    if (token.isNotEmpty) {
+      request.headers.addAll({'Authorization': token});
+    }
+
+    log('ApiRequestHelper -- method: PUT');
+    log('ApiRequestHelper -- uri: $uri');
+    log('ApiRequestHelper -- request headers: $headers');
+    log('ApiRequestHelper -- request body: $body');
+
+    if (filePath.isNotEmpty && filePath.length == 1) {
+      body.remove(filePath.keys.first);
+
+      final file = await http.MultipartFile.fromPath(
+        filePath.keys.first,
+        filePath.values.first,
+      );
+
+      request.files.add(file);
+    }
+
+    request.fields.addAll(body);
+    return _sendRequest(request);
+  }
+
   Future<dynamic> _sendRequest(http.BaseRequest request) async {
     final response =
         await _client.send(request).timeout(const Duration(minutes: 1));
