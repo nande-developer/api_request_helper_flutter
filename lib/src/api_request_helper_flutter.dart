@@ -173,7 +173,7 @@ class ApiRequestHelperFlutter {
 
 /// Convinient converter for converting Map<String, dynamic> to json body format
 extension ToJson on Map<String, dynamic> {
-  /// Convinient function for converting Map<String, dynamic> to json body
+  /// Convinient function for converting Map<String, dynamic> to json body 
   /// format
   Map<String, String> get toJson {
     final json = Map<String, String>.from({});
