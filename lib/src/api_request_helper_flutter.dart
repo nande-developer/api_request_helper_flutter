@@ -36,6 +36,33 @@ class ApiRequestHelperFlutter {
     return _sendRequest(request);
   }
 
+  /// Calls POST api with raw json body which will emit [Future] dynamic
+  ///
+  /// Throws a [Exception] if response status code is not 200
+  Future<dynamic> postWithJson({
+    required Uri uri,
+    required Map<String, dynamic> body,
+    Map<String, String> additionalHeaders = const {},
+    String token = '',
+  }) async {
+    final headers = {'Content-Type': 'application/json'}
+      ..addAll(additionalHeaders);
+
+    if (token.isNotEmpty) {
+      headers.addAll({'Authorization': token});
+    }
+
+    log('ApiRequestHelper -- method: POST');
+    log('ApiRequestHelper -- uri: $uri');
+    log('ApiRequestHelper -- request headers: $headers');
+    log('ApiRequestHelper -- request body: $body');
+    final request = http.Request('POST', uri);
+    request.headers.addAll(headers);
+    request.body = jsonEncode(body);
+
+    return _sendRequest(request);
+  }
+
   /// Calls POST api which will emit [Future] dynamic
   ///
   /// Throws a [Exception] if response status code is not 200
@@ -173,7 +200,7 @@ class ApiRequestHelperFlutter {
 
 /// Convinient converter for converting Map<String, dynamic> to json body format
 extension ToJson on Map<String, dynamic> {
-  /// Convinient function for converting Map<String, dynamic> to json body 
+  /// Convinient function for converting Map<String, dynamic> to json body
   /// format
   Map<String, String> get toJson {
     final json = Map<String, String>.from({});
