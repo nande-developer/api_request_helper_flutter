@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:api_request_helper_flutter/api_request_helper_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -14,6 +15,13 @@ class ApiRequestHelperFlutter {
       : _client = client ?? http.Client();
 
   final http.Client _client;
+
+  final _controller = StreamController<num>();
+
+  /// Convenient getter for status code
+  Stream<num> get statusCode async* {
+    yield* _controller.stream;
+  }
 
   /// Calls GET api which will emit [Future] Map<String, dynamic>
   ///
@@ -173,10 +181,30 @@ class ApiRequestHelperFlutter {
   }
 
   Future<dynamic> _sendRequest(http.BaseRequest request) async {
-    final response =
-        await _client.send(request).timeout(const Duration(minutes: 1));
+    try {
+      final response =
+          await _client.send(request).timeout(const Duration(minutes: 1));
 
-    return _returnResponse(response);
+      return _returnResponse(response);
+    } on SocketException catch (error, stackTrace) {
+      log('$error');
+      log('$stackTrace');
+      
+      throw ServiceException(
+        code: 'socket-exception',
+        message: error.message,
+        stackTrace: stackTrace,
+      );
+    } on FormatException catch (error, stackTrace) {
+      log('$error');
+      log('$stackTrace');
+      
+      throw ServiceException(
+        code: 'format-exception',
+        message: error.message,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<dynamic> _returnResponse(http.StreamedResponse response) async {
@@ -187,6 +215,8 @@ class ApiRequestHelperFlutter {
     log('ApiRequestHelper -- response status code: $statusCode');
     log('ApiRequestHelper -- body: $mappedResponse');
 
+    _controller.add(statusCode);
+
     if (statusCode == 200 && baseResponse.status == 200) {
       return baseResponse.data;
     }
@@ -196,6 +226,9 @@ class ApiRequestHelperFlutter {
       message: baseResponse.message,
     );
   }
+
+  /// Disposes status code stream controller
+  void dispose() => _controller.close();
 }
 
 /// Convinient converter for converting Map<String, dynamic> to json body format
