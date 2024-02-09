@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:api_request_helper_flutter/api_request_helper_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -180,10 +181,30 @@ class ApiRequestHelperFlutter {
   }
 
   Future<dynamic> _sendRequest(http.BaseRequest request) async {
-    final response =
-        await _client.send(request).timeout(const Duration(minutes: 1));
+    try {
+      final response =
+          await _client.send(request).timeout(const Duration(minutes: 1));
 
-    return _returnResponse(response);
+      return _returnResponse(response);
+    } on SocketException catch (error, stackTrace) {
+      log('$error');
+      log('$stackTrace');
+      
+      throw ServiceException(
+        code: 'socket-exception',
+        message: error.message,
+        stackTrace: stackTrace,
+      );
+    } on FormatException catch (error, stackTrace) {
+      log('$error');
+      log('$stackTrace');
+      
+      throw ServiceException(
+        code: 'format-exception',
+        message: error.message,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<dynamic> _returnResponse(http.StreamedResponse response) async {
