@@ -15,6 +15,13 @@ class ApiRequestHelperFlutter {
 
   final http.Client _client;
 
+  final _controller = StreamController<num>();
+
+  /// Convenient getter for status code
+  Stream<num> get statusCode async* {
+    yield* _controller.stream;
+  }
+
   /// Calls GET api which will emit [Future] Map<String, dynamic>
   ///
   /// Throws a [Exception] if response status code is not 200
@@ -187,6 +194,8 @@ class ApiRequestHelperFlutter {
     log('ApiRequestHelper -- response status code: $statusCode');
     log('ApiRequestHelper -- body: $mappedResponse');
 
+    _controller.add(statusCode);
+
     if (statusCode == 200 && baseResponse.status == 200) {
       return baseResponse.data;
     }
@@ -196,6 +205,9 @@ class ApiRequestHelperFlutter {
       message: baseResponse.message,
     );
   }
+
+  /// Disposes status code stream controller
+  void dispose() => _controller.close();
 }
 
 /// Convinient converter for converting Map<String, dynamic> to json body format
