@@ -186,6 +186,28 @@ class ApiRequestHelperFlutter {
     return _sendRequest(request);
   }
 
+  /// Calls DELETE api which will emit [Future] dynamic
+  ///
+  /// Throws a [Exception] if response status code is not 200
+  Future<dynamic> delete({
+    required Uri uri,
+    String userToken = '',
+  }) async {
+    final headers = {'Content-Type': 'application/json'};
+
+    if (userToken.isNotEmpty) {
+      headers.addAll({'Authorization': userToken});
+    }
+
+    log('ApiRequestHelper -- method: DELETE');
+    log('ApiRequestHelper -- uri: $uri');
+    log('ApiRequestHelper -- request headers: $headers');
+
+    final request = http.Request('DELETE', uri);
+    request.headers.addAll(headers);
+    return _sendRequest(request);
+  }
+
   Future<dynamic> _sendRequest(http.BaseRequest request) async {
     try {
       final response =
