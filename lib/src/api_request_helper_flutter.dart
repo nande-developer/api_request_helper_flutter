@@ -17,10 +17,16 @@ class ApiRequestHelperFlutter {
   final http.Client _client;
 
   final _controller = StreamController<num>();
+  final _baseResponseStreamController = StreamController<BaseResponse>();
 
   /// Convenient getter for status code
   Stream<num> get statusCode async* {
     yield* _controller.stream;
+  }
+
+  /// Convenient getter for base response
+  Stream<BaseResponse> get baseResponse async* {
+    yield* _baseResponseStreamController.stream;
   }
 
   /// Calls GET api which will emit [Future] Map<String, dynamic>
@@ -180,6 +186,28 @@ class ApiRequestHelperFlutter {
     return _sendRequest(request);
   }
 
+  /// Calls DELETE api which will emit [Future] dynamic
+  ///
+  /// Throws a [Exception] if response status code is not 200
+  Future<dynamic> delete({
+    required Uri uri,
+    String userToken = '',
+  }) async {
+    final headers = {'Content-Type': 'application/json'};
+
+    if (userToken.isNotEmpty) {
+      headers.addAll({'Authorization': userToken});
+    }
+
+    log('ApiRequestHelper -- method: DELETE');
+    log('ApiRequestHelper -- uri: $uri');
+    log('ApiRequestHelper -- request headers: $headers');
+
+    final request = http.Request('DELETE', uri);
+    request.headers.addAll(headers);
+    return _sendRequest(request);
+  }
+
   Future<dynamic> _sendRequest(http.BaseRequest request) async {
     try {
       final response =
@@ -189,7 +217,7 @@ class ApiRequestHelperFlutter {
     } on SocketException catch (error, stackTrace) {
       log('$error');
       log('$stackTrace');
-      
+
       throw ServiceException(
         code: 'socket-exception',
         message: error.message,
@@ -198,7 +226,7 @@ class ApiRequestHelperFlutter {
     } on FormatException catch (error, stackTrace) {
       log('$error');
       log('$stackTrace');
-      
+
       throw ServiceException(
         code: 'format-exception',
         message: error.message,
@@ -216,6 +244,7 @@ class ApiRequestHelperFlutter {
     log('ApiRequestHelper -- body: $mappedResponse');
 
     _controller.add(statusCode);
+    _baseResponseStreamController.add(baseResponse);
 
     if (statusCode == 200 && baseResponse.status == 200) {
       return baseResponse.data;
@@ -227,8 +256,11 @@ class ApiRequestHelperFlutter {
     );
   }
 
-  /// Disposes status code stream controller
-  void dispose() => _controller.close();
+  /// Dispose all stream controllers
+  void dispose() {
+    _controller.close();
+    _baseResponseStreamController.close();
+  }
 }
 
 /// Convinient converter for converting Map<String, dynamic> to json body format
